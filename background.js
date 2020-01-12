@@ -7,6 +7,10 @@
 // @grant        none
 // ==/UserScript==
 
+// Mostly wrote this for funsies,
+// not exactly clean or well written
+// Be kind please :D
+
 (function () {
     'use strict';
 
