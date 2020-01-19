@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         VIZControl
-// @version      0.0.1
-// @description  Adds basic media controls to VIZ manga reader.
+// @name         Hotkeys for VIZMedia Manga
+// @version      0.0.3
+// @description  Adds basic media controls to VIZ manga reader
 // @author       Adakenko
 // @match        https://www.viz.com/shonenjump/*
 // @grant        none
@@ -15,22 +15,25 @@
     'use strict';
 
     // VARIABLES
-    var _isFullscreen = false; // Should always start off false
+    let _isFullscreen = false; // Should always start off false
 
     // CONSTS
+    const LOAD_AFTER_LAST = true; // true: goes to next chapter on hitting last page
     const NAVIGATION_KEYS = [65, 68]; // A & D by default
     const SMODE_KEY = 83;
     const PREV_KEY = 81;
     const NEXT_KEY = 69;
+    
 
     // ON PAGE LOAD
     window.onload = function (e) {
-        window.toggleVIZControlListeners();
+        window.addVIZControlListeners();
         window.toggleFullscreen(); // Hate having to fullscreen it every time
+        window.toggleSingleMode();
     }
 
     // EVENT LISTENERS
-    window.toggleVIZControlListeners = function () {
+    window.addVIZControlListeners = function () {
         document.addEventListener("keydown", function (keyEvent) {
             var key = keyEvent.which || keyEvent.keyCode;
 
@@ -48,9 +51,12 @@
             }
         });
 
+
         window.bindNavArrows();
+        window.bindScrollWheel();
     }
 
+    // CLICK NEXT/PREV CHAPTER
     window.clickEndBtn = function (type) {
         var endBtn = document.querySelectorAll("#end_page_end_card .o_chapter-container");
 
@@ -66,11 +72,21 @@
         endBtn.click()
     }
 
-    // TOGGLE FS VIA "F" KEY
-    window.toggleFullscreen = function () {
-        checkAndWaitElement(".reader-icon-fullscreen").then(function (element) {
-            var fullscreenBtn = document.querySelector(".reader-icon-fullscreen");
+    // RETURN WHETHER OR NOT YOU'RE AT THE END PAGE
+    window.viewingFinalPage = function () {
+        var endCardLeftPos = document.querySelector("#end_page_end_card").style.left;
+        if (endCardLeftPos === "-3000px") {
+            return false;
+        }
 
+        return true;
+    }
+
+    // TOGGLE FS VIA "F" KEY
+    window.toggleFullscreen = function (readerOnly) {
+        var fullscreenBtn = document.querySelector(".reader-icon-fullscreen");
+
+        if (fullscreenBtn) {
             if (_isFullscreen) {
                 document.querySelector(".reader-icon-embed").click();
 
@@ -83,11 +99,11 @@
             else {
                 document.querySelector(".reader-icon-popout").click();
 
-                fullscreenBtn.requestFullscreen().then(function () {
+                document.documentElement.requestFullscreen().then(function () {
                     _isFullscreen = true;
                 });
             }
-        });
+        }
     }
 
     // TOGGLE SINGLE COLUMN DISPLAY MODE
@@ -98,30 +114,74 @@
         });
     }
 
+    // TODO: add deets & private variable
+    window.bindScrollWheel = function () {
+        var scriptContent = `// wheel up/down for navigation
+        window.addEventListener("wheel", function (event) {
+            if (event.deltaY < 0) {
+                var event = new KeyboardEvent('keydown', {'keyCode':39, 'which':39});
+                document.dispatchEvent(event);
+            }
+            else if (event.deltaY > 0) {
+                var event = new KeyboardEvent('keydown', {'keyCode':37, 'which':37});
+                document.dispatchEvent(event);
+            }
+        });`;
+
+        injectScript(scriptContent);
+    }
+
+
     // BINDS _navigationKeys TO NAV ARROWS
-    // Creates a script element for executing the binding code
-    // [Doesn't use the VIZControl listener for the time being!]
+    // - Creates a script element for executing the binding code
+    // - Optionally, arrows & binds move to next chapter on reaching the last page (LOAD_AFTER_LAST)
+    // [Doesn't use the VIZControl listener because permissions idk]
     window.bindNavArrows = function () {
-        var scriptContent = `document.onkeydown = function (keyEvent) {
+        var scriptContent = `window.isLastPage = function() {
+                return window.elementInViewport(document.querySelector("#end_page_end_card"));
+            }
+
+            document.onkeydown = function (keyEvent) {
             var key = keyEvent.which || keyEvent.keyCode;
 
-            if (key == ` + NAVIGATION_KEYS[0] + `) {
-            var event = new KeyboardEvent('keydown', {'keyCode':37, 'which':37});
-            document.dispatchEvent(event);
+            var arrowPressed = false;
+            switch (key) {
+                case ` + NAVIGATION_KEYS[0] + `:
+                    var event = new KeyboardEvent('keydown', {'keyCode':37, 'which':37});
+                    document.dispatchEvent(event);
+                    break;
+                case ` + NAVIGATION_KEYS[1] + `:
+                    var event = new KeyboardEvent('keydown', {'keyCode':39, 'which':39});
+                    document.dispatchEvent(event);
+                    break;
+                case 37:
+                    arrowPressed = true;
+                    break;
+                case 39:
+                    arrowPressed = true;
+                    break;
             }
-            else if (key == ` + NAVIGATION_KEYS[1] + `) {
-            var event = new KeyboardEvent('keydown', {'keyCode':39, 'which':39});
-            document.dispatchEvent(event);
+
+            if (arrowPressed) {
+                if (` + LOAD_AFTER_LAST + ` && window.isLastPage()) {
+                    var endBtnNext = document.querySelector("#end_page_end_card .o_chapter-container");
+                    endBtnNext.click();
+                    arrowPressed = false;
+                }
             }
         }`;
 
+        injectScript(scriptContent);
+    }
+
+    // INJECT A SCRIPT INTO THE PAGE AS AN ELEMENT
+    window.injectScript = function (str) {
         var scriptElement = document.createElement("script");
         scriptElement.type = "text/javascript";
-        scriptElement.innerHTML = scriptContent;
+        scriptElement.innerHTML = str;
 
         document.head.appendChild(scriptElement);
     }
-
 
     // WAIT FOR ELEMENT TO EXIST (Thanks Bergi https://stackoverflow.com/a/47775618/4805034!)
     async function checkAndWaitDocument(elementQueryStr, documentName) {
