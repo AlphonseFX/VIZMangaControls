@@ -1,4 +1,4 @@
-# VIZControl
+# Hotkeys for VIZMedia Manga
 
 Tired of the standard control options for the VIZ manga reader? This extension provides additional hotkeys/control functionality, to supplement your reading experience. As of the current release, your options are:  
 - Fullscreen (F)
