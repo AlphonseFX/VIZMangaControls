@@ -9,5 +9,5 @@ Tired of the standard control options for the VIZ manga reader? This extension p
 
 Additionally, it automatically pops out the reader in single column mode, and will redirect you to the next chapter automatically when you reach the final page. 
 
-You can find a packed extension on the Chrome Web Store here:
-https://chrome.google.com/webstore/detail/hotkeys-for-vizmedia-mang/nklfemdfoghnfaeciipppcankdhmgkek
+Note that while similar, the packed extension below offers more features than this userscript:
+https://chrome.google.com/webstore/detail/viz-hotkeys-for-viz-manga/nklfemdfoghnfaeciipppcankdhmgkek
