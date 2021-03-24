@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Reader Hotkey Options</title>
+        <style>
+            body { font-family: monospace; min-width:400px;}
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>Hotkey Selection</h1>
+        </header>
+
+        <p style="color: red;">Warning: the options feature is experimental!</p>
+        <p>Reload the VIZ site for your changes to take effect.</p>
+        <br>
+
+        <!-- Automatic options -->
+        <input type="checkbox" id="autoPopout"/>
+        <label for="autoPopout">Automatically activate popout mode?</label>
+        <br>
+        <input type="checkbox" id="autoSingleMode" />
+        <label for="autoSingleMode">Automatically activate single column mode?</label>
+        <br>
+        <input type="checkbox" id="autoFinalLoad" />
+        <label for="autoFinalLoad">Automatically load next chapter after reaching the current final page (Shonen Jump only)?</label>
+        <br>
+        <input type="checkbox" id="enableScrollbind" />
+        <label for="enableScrollbind">Enable page navigation using the scroll wheel?</label>
+        <br>
+        <input type="checkbox" id="enableReverseScroll" />
+        <label for="enableReverseScroll">Reverse the scroll wheel's navigation direction? (disabled: UP = next page, DOWN = previous page)</label>
+        <br> 
+        <input type="checkbox" id="immersiveFsChoice" />
+        <label for="immersiveFsChoice">Set the fullscreen toggle key to also only show the manga (hide the reader interface)?</label>
+        <br>
+        <br>
+
+        <!-- Page navigation hotkeys -->
+        <label for="pageNextKeyChoice">Next page key: </label>
+        <input id="pageNextKeyChoice" type="text" maxlength="14" size="12" />
+        <br> 
+        <label for="pagePrevKeyChoice">Previous page key: </label>
+        <input id="pagePrevKeyChoice" type="text" maxlength="14" size="12" />
+        <br>
+        <br>
+
+        <!-- Chapter navigation keys -->
+        <label for="chapterNextKeyChoice">Next chapter key (Shonen Jump only): </label>
+        <input id="chapterNextKeyChoice" type="text" maxlength="14" size="12" />
+        <br> 
+
+        <label for="chapterPrevKeyChoice">Previous chapter key (Shonen Jump only): </label>
+        <input id="chapterPrevKeyChoice" type="text" maxlength="14" size="12" />
+        <br>
+        <br>
+
+        <!-- Single keys -->
+        <label for="singleColKeyChoice">Single column mode toggle key: </label>
+        <input id="singleColKeyChoice" type="text" maxlength="14" size="12" />
+        <br>
+        <label for="fullscreenKeyChoice">Fullscreen toggle key: </label>
+        <input id="fullscreenKeyChoice" type="text" maxlength="14" size="12" />
+        <br>
+        <label for="popoutKeyChoice">Popout toggle key: </label>
+        <input id="popoutKeyChoice" type="text" maxlength="14" size="12" />
+        <br>
+        <br>
+        <br>
+
+        <!-- Load script -->
+        <script src="../scripts/options.js"></script>
+
+        <!-- Submit -->
+        <input id="saveOptionsBtn" type="submit" value="Save Options"/>
+        <input id="resetOptionsBtn" type="submit" value="Load Default Selections"/>
+        
+        <p id="saveStatus"></p>
+
+    </body>
+</html>
