@@ -1,0 +1,13 @@
+{
+    "auto_popout": true,
+    "auto_singlemode": true, 
+    "load_on_final": true,
+    "enable_scrollbind": true,
+    "reverse_scrollbind": false,
+    "immersive_fs": true,
+    "page_nav_keys": [ "a", "d" ], 
+    "chapter_nav_keys": [ "q", "e" ], 
+    "smode_key": "s", 
+    "fullscreen_key": "f", 
+    "popout_key": "p"
+}
