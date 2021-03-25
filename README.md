@@ -20,6 +20,6 @@ Trying to read manga on the VIZ website, but annoyed by the lack of keyboard sho
 (*) Enabled by default. You can turn these settings off in the options menu, which can be reached by clicking on the extension's icon in your browser. If that doesn't work, you can open it by right-clicking the extension’s icon in most Chromium-based browsers and hitting 'Options'. 
 
 
-Packed extension available on Chrome Web Store:
-
+**Packed extension available on Chrome Web Store:**
 https://chrome.google.com/webstore/detail/viz-hotkeys-for-viz-manga/nklfemdfoghnfaeciipppcankdhmgkek
+
