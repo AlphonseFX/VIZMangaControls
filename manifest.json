@@ -1,7 +1,7 @@
 {
    "name": "VIZ Hotkeys - For VIZ Manga & Shonen Jump",
    "description": "Unofficial hotkey support for VIZ' manga and Shonen Jump reader.",
-   "version": "0.1.1",
+   "version": "0.1.2",
    "manifest_version": 3,
    "options_page": "/options/options.html",
    "action": {
@@ -13,10 +13,12 @@
       "matches": [ "*://www.viz.com/shonenjump/*", "*://www.viz.com/read/manga/*" ],
       "run_at": "document_idle"
    }],
-   "web_accessible_resources": [{
-      "resources": [ "/scripts/hotkey.js", "/scripts/options.js", "/cfg/defaults.json" ],
-      "matches": [ "*://www.viz.com/shonenjump/*", "*://www.viz.com/read/manga/*" ]
-   }],
+   "web_accessible_resources": [
+      {
+         "resources": [ "/scripts/hotkey.js", "/cfg/defaults.json" ],
+         "matches": [ "http://www.viz.com/*", "https://www.viz.com/*" ]
+      }
+   ],
    "permissions": [ "storage" ],
    "host_permissions": [ "*://www.viz.com/shonenjump/*", "*://www.viz.com/read/manga/*" ]
 }
