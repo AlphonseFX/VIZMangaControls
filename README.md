@@ -6,11 +6,11 @@ Trying to read manga on the VIZ website, but annoyed by the lack of keyboard sho
 * NEXT PAGE (A) / PREVIOUS PAGE (D)
 * NEXT CHAPTER (E) / PREVIOUS CHAPTER (Q)
 * SINGLE COLUMN MODE (S)
-* TOGGLE FULLSCREEN & IMMERSIVE MODE (F)
+* TOGGLE FULLSCREEN WITH IMMERSIVE MODE (F)
 * TOGGLE POPOUT (P)
 * SCROLL WHEEL PAGE NAVIGATION (UP -> Next, DOWN -> Previous)
 
-## Extra Features
+## Optional Features
 * Automatically activate popout mode when you load a page (*)
 * Automatically activate single column mode when you load a page (*)
 * Automatically load the next chapter after you reach the final page (*Shounen Jump only*) (*)
