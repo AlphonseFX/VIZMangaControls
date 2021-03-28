@@ -1,7 +1,6 @@
 // variables
 let _isFullscreen = false; // default: false
-let _singleModeActive = false;
-let _readerSettings = undefined;
+let _readerSettings = undefined; // settings from the extension
 
 // onload override
 window.onload = function() {
@@ -22,81 +21,100 @@ window.onload = function() {
                 toggleSingleMode();
                 break;
             case _readerSettings.fullscreen_key:
+                if (_readerSettings.immersive_fs) {
+                    toggleReaderUI();
+                    toggleCursor();
+                }
                 toggleFullscreen();
-                if (_readerSettings.immersive_fs) toggleReaderUI();
                 break;
             case _readerSettings.popout_key:
                 toggleReaderOpen();
                 break;
             case _readerSettings.chapter_nav_keys[0]:
-                gotoPrevChapter();
+                loadPrevChapter();
                 break;
             case _readerSettings.chapter_nav_keys[1]:
-                gotoNextChapter();
+                loadNextChapter();
                 break;
             case _readerSettings.page_nav_keys[0]:
-                gotoNextPage();
+                loadNextPage();
                 break;
             case _readerSettings.page_nav_keys[1]:
-                gotoPrevPage();
+                loadPrevPage();
                 break;
         }
     });
 
-    addMouseEventListeners();
-}
-
-// toggle hide/show for the reader's user interface
-function toggleReaderUI() {
-    let readerHeader = document.querySelector("#reader_header");
-    readerHeader.hidden = !readerHeader.hidden;
-
-    let readerFooter = document.querySelector("#reader_bottom_container");
-    readerFooter.hidden = !readerFooter.hidden;
+    // mouse wheel listener
+    let readerIDs = [ "#embedded_desktop_wrapper", "#modal-reader" ];
+    for(id of readerIDs) {
+        let reader = document.querySelector(id);
+        if (reader) {
+            reader.addEventListener("wheel", function (event) {
+                event.preventDefault();
+    
+                if(_readerSettings.enable_scrollbind) {
+                    if(_readerSettings.reverse_scrollbind) {
+                        if (event.deltaY < 0) loadPrevPage();
+                        else if (event.deltaY > 0) loadNextPage();
+                    }
+                    else {
+                        if (event.deltaY < 0) loadNextPage();
+                        else if (event.deltaY > 0) loadPrevPage();
+                    }
+                }
+            });
+        }
+    }
 }
 
 // moves backward by one page, unless that would make the page number negative
-function gotoPrevPage() {
-    window.page = (window.page - 1) < 0 ? 0 : (window.page - 1);
-    window.loadPages();
+function loadPrevPage() {
+    let oldPage = page;
+    let newPage = (page - 1) < 0 ? 0 : (page - 1);
+
+    if (newPage != oldPage) {
+        page = newPage;
+        loadPages();
+    } 
 }
 
 // moves forward by one page, unless you're on the final page
-function gotoNextPage() {
-    if (isFinalPage() && _readerSettings.load_on_final) {
-        var endBtnNext = document.querySelector("#end_page_end_card .o_chapter-container");
-        endBtnNext.click();
+function loadNextPage() {
+    let prevPage = page;
+
+    if ((page + 1) != prevPage) {
+        page++;
+        loadPages();
     }
 
-    window.page = isFinalPage() ? window.page : (window.page + 1);
-    window.loadPages();
+    if (_readerSettings.load_on_final) {
+        if (isFinalPage()) loadNextChapter(); // load next chapter if we're on the final page
+        else if (page == prevPage) loadNextChapter(); // do the same while catching a bug, where the page index is duplicated
+    }
 }
 
 // loads the next chapter
-function gotoNextChapter() {
+function loadNextChapter() {
     let endBtns = document.querySelectorAll("#end_page_end_card .o_chapter-container");
     if (endBtns[0]) endBtns[0].click();
 }
 
 // loads the previous chapter
-function gotoPrevChapter() {
+function loadPrevChapter() {
     let endBtns = document.querySelectorAll("#end_page_end_card .o_chapter-container");
     if (endBtns[1]) endBtns[1].click();
 }
 
 // toggles single column mode
 function toggleSingleMode() {
-    let oldPageMode = window.pageMode;
     let pageModeBtn = document.getElementsByClassName("reader-page-mode")[0];
-    pageModeBtn.click();
+    let oldPageMode = pageMode;
 
-    // double check that it got toggled
-    if ((oldPageMode != 1) && window.pageMode == 2) {
-        let interval = setInterval(() => {
-            if (window.pageMode == 2) pageModeBtn.click();
-            else clearInterval(interval);
-        }, 300);
-    }
+    let toggleInterval = setInterval(() => {
+        if (pageMode == oldPageMode) pageModeBtn.click();
+        else clearInterval(toggleInterval);
+    }, 300);
 }
 
 // toggles popout
@@ -115,8 +133,6 @@ function toggleReaderOpen() {
     else {
         if(isShonenJump) popOut();
         else {
-            document.querySelector("#reader_button a").click();
-
             // ensure the reader was open
             let interval = setInterval(() => {
                 if (!readerOpen) document.querySelector("#reader_button a").click()
@@ -124,6 +140,23 @@ function toggleReaderOpen() {
             }, 200);
         }
     }
+}
+
+// toggle hide/show for the reader's user interface
+function toggleReaderUI() {
+    let readerHeader = document.querySelector("#reader_header");
+    readerHeader.hidden = !readerHeader.hidden;
+
+    let readerFooter = document.querySelector("#reader_bottom_container");
+    readerFooter.hidden = !readerFooter.hidden;
+}
+
+// toggle hide/show for the mouse
+function toggleCursor() {
+    if (document.body.style.cursor == "none") 
+        document.body.style = "cursor: default;";
+    else 
+        document.body.style = "cursor: none;";
 }
 
 // toggles fullscreen 
@@ -140,39 +173,6 @@ function toggleFullscreen() {
 
 // returns whether or not you're at the last page
 function isFinalPage() {
-    let endCardLeftPos = document.querySelector("#end_page_end_card").style.left;
-    if (endCardLeftPos === "-3000px") return false;
-    return true;
+    return page > getPageCount();
 }
 
-function addMouseEventListeners() {
-    document.querySelector("#modal-reader")?.addEventListener("wheel", function (event) {
-        event.preventDefault();
-
-        if(_readerSettings.enable_scrollbind) {
-            if(_readerSettings.reverse_scrollbind) {
-                if (event.deltaY < 0) gotoPrevPage();
-                else if (event.deltaY > 0) gotoNextPage();
-            }
-            else {
-                if (event.deltaY < 0) gotoNextPage();
-                else if (event.deltaY > 0) gotoPrevPage();
-            }
-        }
-    });
-
-    document.querySelector("#embedded_desktop_wrapper")?.addEventListener("wheel", function (event) {
-        event.preventDefault();
-
-        if(_readerSettings.enable_scrollbind) {
-            if(_readerSettings.reverse_scrollbind) {
-                if (event.deltaY < 0) gotoPrevPage();
-                else if (event.deltaY > 0) gotoNextPage();
-            }
-            else {
-                if (event.deltaY < 0) gotoNextPage();
-                else if (event.deltaY > 0) gotoPrevPage();
-            }
-        }
-    });
-}
