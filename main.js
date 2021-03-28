@@ -1,51 +1,33 @@
-function insertSettings(settingEntry) {
-
-    // shouldn't be needing this but i'm lazy
-    let settingEntryTrim = settingEntry?.settings;
-
-    // span creation
+function insertSettings(settingsObj) {
+    // create our settings span
     let settingsSpan = document.createElement("span");
     settingsSpan.id = "settingsSpan";
     settingsSpan.hidden = "true";
 
-    // check if the entry is undefined or has a length of zero
-    if (!settingEntryTrim || Object.keys(settingEntryTrim).length < 1) {
-        // fetch the setting configuration file
-        fetch(chrome.runtime.getURL("/cfg/defaults.json")).then(defaultFetch => {
+    // load default config if none is available
+    // otherwise, load the user's settings config
+    if (!settingsObj || Object.keys(settingsObj).length < 1) {
+        fetch(chrome.runtime.getURL("../../cfg/defaults.json")).then(defaultFetch => {
             // get the text from our file fetch
             defaultFetch.text().then(defaultStr => {
-                // set the span's text value to the configuration file's contents
-                // append the span now that it's prepared
-                settingsSpan.textContent = defaultStr;
-                document.head.appendChild(settingsSpan);
-
-                // store initial settings
-                chrome.storage.local.set({ "settings": JSON.parse(defaultStr) });
+                settingsSpan.textContent = defaultStr; // set the span's text value to the configuration file's contents
+                document.head.appendChild(settingsSpan); // append the span now that it's prepared
             });
         });
     }
     else {
-        // set the span's text value to the stored configuration
-        // append the span now that it's prepared
-        settingsSpan.textContent = JSON.stringify(settingEntryTrim);
-        document.head.appendChild(settingsSpan);
+        settingsSpan.textContent = JSON.stringify(settingsObj); // set the span's text value to the stored configuration
+        document.head.appendChild(settingsSpan); // append the span now that it's prepared
     }
-
 }
 
-
 function insertControlScript() {
-
     let controlScript = document.createElement("script");
     controlScript.src = chrome.runtime.getURL("/scripts/hotkey.js");
     document.head.appendChild(controlScript);
-
 }
 
-
-chrome.storage.local.get("settings", settingEntry => {
-
-    insertSettings(settingEntry);
-    insertControlScript(settingEntry);
-
+chrome.storage.local.get("readerSettings", settingEntry => {
+    insertSettings(settingEntry['readerSettings']);
+    insertControlScript();
 });
