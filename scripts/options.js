@@ -1,4 +1,4 @@
-let _defaultSettings = undefined;
+let _storedSettings = undefined;
 
 window.onload = function() {
 
@@ -18,24 +18,7 @@ window.onload = function() {
     let singleColKeyChoice = document.querySelector("#singleColKeyChoice");
     let fullscreenKeyChoice = document.querySelector("#fullscreenKeyChoice");
     let popoutKeyChoice = document.querySelector("#popoutKeyChoice");
-    
 
-    // use event listeners to allow only automatic key input 
-    let listenElements = [ pageNextKeyChoice, pagePrevKeyChoice, chapterNextKeyChoice, 
-                          chapterPrevKeyChoice, singleColKeyChoice, fullscreenKeyChoice,
-                          popoutKeyChoice ];
-
-    for(let index = 0; index < listenElements.length; index++) {
-        listenElements[index].addEventListener("keyup", keyEvent => {
-            listenElements[index].value = keyEvent.key.toLowerCase();
-        });
-    }
-
-    // checkbox event listener to disable enableReverseScroll when unableScrollbind is unchecked
-    let scrollBindChoice = document.querySelector("#enableScrollbind");
-    scrollBindChoice.addEventListener("click", () => {
-        document.querySelector("#enableReverseScroll").disabled = !scrollBindChoice.checked;
-    });
 
     // fill inputs with default values
     function loadSettingValues(settingsObj) {
@@ -46,49 +29,17 @@ window.onload = function() {
         enableReverseScrollChoice.checked = settingsObj.reverse_scrollbind;
         immersiveFsChoice.checked = settingsObj.immersive_fs;
         if (!enableScrollbindChoice.checked) enableReverseScrollChoice.disabled = true;
-    
+
         pageNextKeyChoice.value = settingsObj.page_nav_keys[0];
         pagePrevKeyChoice.value = settingsObj.page_nav_keys[1];
-    
+
         chapterNextKeyChoice.value = settingsObj.chapter_nav_keys[0];
         chapterPrevKeyChoice.value = settingsObj.chapter_nav_keys[1];
-    
+
         singleColKeyChoice.value = settingsObj.smode_key;
         fullscreenKeyChoice.value = settingsObj.fullscreen_key;
         popoutKeyChoice.value = settingsObj.popout_key;
     }
-
-    // i'm getting bored here
-    let settingsEntryTrim = undefined;
-    chrome.storage.local.get("settings", settingsEntry => {
-        settingsEntryTrim = settingsEntry?.settings;
-        console.log(settingsEntry, settingsEntryTrim);
-
-        // fetch the setting configuration file
-        fetch(chrome.runtime.getURL("../../cfg/defaults.json")).then(defaultFetch => {
-            // get the text from our file fetch
-            defaultFetch.text().then(defaultStr => {
-                // load the default values
-                let parsedDefaults = JSON.parse(defaultStr);
-
-                // create easily accessible backup for this page
-                _defaultSettings = parsedDefaults;
-
-                // check if the entry is undefined or has a length of zero
-                if (!settingsEntry || Object.keys(settingsEntry).length < 1) {
-                    // store initial settings
-                    loadSettingValues(parsedDefaults);
-                    chrome.storage.local.set({ "settings": parsedDefaults });
-                }
-                else {
-                    // load the default values
-                    loadSettingValues(settingsEntryTrim);
-                }
-            });
-        });
-
-
-    });
 
     function getModifiedSettings() {
         let settings = {
@@ -108,9 +59,55 @@ window.onload = function() {
         return settings;
     }
 
+
+    // use event listeners to allow only automatic key input 
+    let listenElements = [ pageNextKeyChoice, pagePrevKeyChoice, chapterNextKeyChoice, 
+                          chapterPrevKeyChoice, singleColKeyChoice, fullscreenKeyChoice,
+                          popoutKeyChoice ];
+
+    for(let index = 0; index < listenElements.length; index++) {
+        listenElements[index].addEventListener("keyup", keyEvent => {
+            listenElements[index].value = keyEvent.key.toLowerCase();
+        });
+    }
+
+    // checkbox event listener to disable enableReverseScroll when unableScrollbind is unchecked
+    let scrollBindChoice = document.querySelector("#enableScrollbind");
+    scrollBindChoice.addEventListener("click", () => {
+        document.querySelector("#enableReverseScroll").disabled = !scrollBindChoice.checked;
+    });
+
+    
+    // load default config if none is available
+    // otherwise, load the user's settings config
+    chrome.storage.local.get("readerSettings", settingsEntry => {
+        if (!settingsEntry || Object.keys(settingsEntry).length < 1) {
+            fetch(chrome.runtime.getURL("../../cfg/defaults.json")).then(defaultFetch => {
+                // get the text from our file fetch
+                defaultFetch.text().then(defaultStr => {
+                    // load the default values
+                    let parsedDefaults = JSON.parse(defaultStr);
+
+                    // create easily accessible backup for this page
+                    _storedSettings = parsedDefaults;
+                    console.log(parsedDefaults);
+
+                    chrome.storage.local.set({ "defaultSettings": parsedDefaults }); // store initial settings
+                    loadSettingValues(parsedDefaults); 
+                });
+            });
+        }
+        else {
+            _storedSettings = settingsEntry['readerSettings'];
+            loadSettingValues(settingsEntry['readerSettings']); // load stored values
+        }
+    });
+
+
+    // save settings button
     document.querySelector("#saveOptionsBtn").addEventListener("click", () => {
-        if (settingsEntryTrim) {
-            chrome.storage.local.set({ "settings": getModifiedSettings() });
+        if (_storedSettings) {
+            chrome.storage.local.set({ "readerSettings": getModifiedSettings() });
             document.querySelector("#saveStatus").textContent = "Your preferences have been saved. :)";
         }
         else {
@@ -118,9 +115,12 @@ window.onload = function() {
         }
     });
 
+    // load defaults setting
     document.querySelector("#resetOptionsBtn").addEventListener("click", () => {
-        if (_defaultSettings) loadSettingValues(_defaultSettings);
+        chrome.storage.local.get("defaultSettings", settingsEntry => {
+            console.log(settingsEntry);
+            if (settingsEntry && Object.keys(settingsEntry).length > 0) loadSettingValues(settingsEntry['defaultSettings']);
+        });
     });
 
 }
-
